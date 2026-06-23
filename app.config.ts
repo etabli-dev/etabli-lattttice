@@ -15,9 +15,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
   return {
     ...config,
-    name: `lattttice${nameSuffix}`,
-    slug: 'lattttice',
-    scheme: 'lattttice',
+    name: `etabli-lattttice${nameSuffix}`,
+    slug: 'etabli-lattttice',
+    scheme: 'etabli-lattttice',
     description: 'A 4D 4×4×4×4 tic-tac-toe — the tesseract board, on a phone.',
     version: '1.0.0',
     orientation: 'portrait',
