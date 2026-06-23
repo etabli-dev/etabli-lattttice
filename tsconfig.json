@@ -16,13 +16,31 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["ES2020", "DOM"],
-    "types": ["jest", "node"],
+    "lib": [
+      "ES2020",
+      "DOM"
+    ],
+    "types": [
+      "jest",
+      "node"
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     }
   },
-  "include": ["src/**/*", "App.tsx", "index.ts"],
-  "exclude": ["node_modules", "babel.config.js", ".expo", "dist"]
+  "include": [
+    "src/**/*",
+    "App.tsx",
+    "index.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    ".expo",
+    "dist"
+  ],
+  "extends": "expo/tsconfig.base"
 }
