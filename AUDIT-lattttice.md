@@ -247,3 +247,46 @@ _None observed._
 - **Engineering hygiene (E):** clean static analysis; a few wires to tighten.
 
 Recommend addressing the three P1s before merging, then sweep the eight P2s during the refine polish.
+
+---
+
+## Round 2 — live device audit (Android + iOS)
+
+After Round 1 fixes were committed (557b161), the app was rebuilt as an Android
+dev client (via `expo prebuild --platform android --clean` + `expo run:android`)
+and the JS bundle was served from Metro on 127.0.0.1:8082 via React Native
+"Change Bundle Location" dev menu (port 8081 is reserved for the branchxo agent).
+
+### Verified on Android (Pixel emulator `etabli_pixel`)
+
+| feature | result |
+|---------|--------|
+| 4 views render (Grid/Slices/3D/Heat) | ✅ verified via screenshots |
+| Tap → cell fills with X (Grid) | ✅ |
+| Mode toggle → vs Computer | ✅ AI O played within ~1 s |
+| AI level toggle → Hard | ✅ Hard AI plays a sound block move |
+| Win-probability chart + turning point | ✅ "Turning point — ply 2, Δp(X) ≈ 0.04" |
+| Persistence (force-stop + relaunch) | ✅ board + history + mode + AI level + chart all restored |
+| Heat-view legend | ✅ "6.0 → 16.7" viridis bar rendered |
+
+### Round 2 findings
+
+**R2-D5b — 3D projection clipped to upper-left of canvas (P2)**
+
+3D screenshot showed the point cloud biased to the upper-left third of the 360×360
+canvas. Root cause: per-w offsets (`wOffsetX = (w-1.5)*6` then `× 6` in screen-space)
+were applied without accounting for the cloud's centroid, leaving asymmetric
+whitespace. **Fix:** compute the raw bounding box first, then re-center on the
+canvas. Also bumped `wOffsetX/wOffsetY` magnitudes (12,8 instead of 6,4) for
+clearer w-stratification and dropped the canvas to 320×320 (more padding).
+Verified post-fix: cloud now centered, visible padding on all sides.
+
+**R2-D-perf — ZSlices recreates `winSet` on every render (P2)**
+
+`new Set(winningLine ?? [])` was at the top of `ZSlices` outside `useMemo`,
+breaking memoization for the inner cell rows. **Fix:** wrapped in `useMemo`.
+
+### Round 2 conclusion
+
+No P0 / P1 found. Two P2 polish fixes shipped (R2-D5b, R2-D-perf). Gates remain
+clean (57/57 tests, tsc clean, eslint clean). Ready for Round 3.

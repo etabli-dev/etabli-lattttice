@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useStore } from '../state/store';
 import { toIdx } from '../game/coords';
@@ -20,7 +20,7 @@ export function ZSlices(): React.ReactElement {
   const toMove = useStore((s) => s.toMove);
   const mode = useStore((s) => s.mode);
   const isThinking = useStore((s) => s.isThinking);
-  const winSet = new Set<number>(winningLine ?? []);
+  const winSet = useMemo(() => new Set<number>(winningLine ?? []), [winningLine]);
   const inputDisabled = winner !== null || isThinking || (mode === 'vs-computer' && toMove === 'O');
 
   return (

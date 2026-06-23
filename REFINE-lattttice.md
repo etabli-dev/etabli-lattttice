@@ -143,6 +143,52 @@ Tests:       53 passed, 53 total
 Time:        ~2.1 s
 ```
 
+---
+
+## Round 1 fixes (post live-device audit, commit 557b161)
+
+| ref | issue | fix |
+|-----|-------|-----|
+| R1.1 | Projection3D used non-spec a11y label `"cell N, mark"` | switched to `describeCell(fromIdx(idx), m)` → `"x# y# z# w#, …"` |
+| R1.2 | ViewSwitcher animation had a race: two imperative `withTiming` calls on the same shared value | replaced with `withSequence(withTiming(0.6), withTiming(1))` |
+| R1.3 | GridOfGrids' `PaneProps.cells` used an unstable conditional-type indirection | inlined `ReadonlyArray<Mark>` |
+| R1.4 | No regression test for spec-format VoiceOver labels | added `src/views/__tests__/cellLabel.test.ts` (4 cases incl. 256-cell round-trip) |
+
+Round 1 gates: 57/57 tests, tsc clean, eslint clean.
+
+---
+
+## Round 2 fixes (commit pending, after live Android run)
+
+| ref | issue | fix |
+|-----|-------|-----|
+| R2-D5b | Projection3D point cloud clipped to upper-left of canvas (w-offset bias) | compute raw bounding box → re-center on canvas, bumped w-stratification offsets, dropped canvas to 320×320 |
+| R2-D-perf | `ZSlices` recreated `new Set(winningLine)` on every render | wrapped in `useMemo([winningLine])` |
+
+Round 2 gates: 57/57 tests, tsc clean, eslint clean. Verified visually on Android emulator: 3D cloud now occupies the canvas symmetrically.
+
+---
+
+## Live verification matrix (Round 2)
+
+Run via Android dev client (APK from `expo prebuild` + `expo run:android`),
+Metro on 127.0.0.1:8082 (port 8081 reserved for branchxo).
+
+| feature | status |
+|---------|--------|
+| Boot in Expo Go | ✗ blocked (SDK 51 / Expo Go incompatibility — known) |
+| Boot via dev client APK | ✅ |
+| Grid view + tap | ✅ |
+| Slices view + w-slider | ✅ |
+| 3D Schlegel view | ✅ centered post R2-D5b |
+| Heat view + legend | ✅ |
+| Hotseat → vs Computer toggle | ✅ |
+| AI Medium plays in <100 ms | ✅ |
+| AI Hard plays sound block | ✅ |
+| Win-probability chart + turning point | ✅ |
+| Force-stop + relaunch → state restored | ✅ |
+| iOS rendering (iPhone 17 sim) | ✅ rendered (verified behind system notification dialog) |
+
 | suite | tests |
 |-------|------:|
 | src/game/__tests__/lines.test.ts | 9 |
