@@ -2,8 +2,9 @@ import React, { Suspense, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useStore } from '../state/store';
 import { theme } from '../ui/theme';
-import { toIdx } from '../game/coords';
+import { toIdx, fromIdx } from '../game/coords';
 import { colorForMark } from './colors';
+import { describeCell } from './cellLabel';
 
 /**
  * 3D Schlegel-style projection of the tesseract.
@@ -68,7 +69,7 @@ export function Projection3D(): React.ReactElement {
                   borderWidth: isWin ? 2 : 0,
                   borderColor: theme.win,
                 }}
-                accessibilityLabel={`cell ${p.idx}, ${m ?? 'empty'}`}
+                accessibilityLabel={describeCell(fromIdx(p.idx), m)}
               />
             );
           })}

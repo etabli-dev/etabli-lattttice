@@ -4,6 +4,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  withSequence,
   Easing,
 } from 'react-native-reanimated';
 import { useStore } from '../state/store';
@@ -21,8 +22,11 @@ export function ViewSwitcher(): React.ReactElement {
   const opacity = useSharedValue(1);
 
   useEffect(() => {
-    opacity.value = 0.6;
-    opacity.value = withTiming(1, { duration: 220, easing: Easing.out(Easing.cubic) });
+    // Smooth crossfade: dip immediately, ramp back to 1.
+    opacity.value = withSequence(
+      withTiming(0.6, { duration: 80, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 220, easing: Easing.out(Easing.cubic) }),
+    );
   }, [view, opacity]);
 
   const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));

@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useStore } from '../state/store';
 import { toIdx } from '../game/coords';
+import type { Mark } from '../game/types';
 import { theme } from '../ui/theme';
 import { colorForMark } from './colors';
 import { describeCell } from './cellLabel';
@@ -60,7 +61,7 @@ export function GridOfGrids(): React.ReactElement {
 interface PaneProps {
   z: number;
   w: number;
-  cells: ReadonlyArray<ReturnType<typeof colorForMark> extends string ? import('../game/types').Mark : never>;
+  cells: ReadonlyArray<Mark>;
   onTap: (idx: number) => void;
   winSet: ReadonlySet<number>;
   rankByIdx: ReadonlyMap<number, number>;
