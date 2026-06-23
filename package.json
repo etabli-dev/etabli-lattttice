@@ -1,0 +1,68 @@
+{
+  "name": "lattttice",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "test": "jest --passWithNoTests",
+    "test:watch": "jest --watch",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "typecheck": "tsc --noEmit",
+    "prebuild": "expo prebuild"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "@shopify/react-native-skia": "1.2.3",
+    "expo": "~51.0.28",
+    "expo-gl": "~14.0.2",
+    "expo-splash-screen": "~0.27.5",
+    "expo-status-bar": "~1.12.1",
+    "expo-system-ui": "~3.0.7",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-gesture-handler": "~2.16.1",
+    "react-native-reanimated": "~3.10.1",
+    "react-native-safe-area-context": "4.10.5",
+    "react-native-screens": "3.31.1",
+    "three": "^0.165.0",
+    "expo-three": "^7.0.0",
+    "@react-three/fiber": "^8.16.8",
+    "zustand": "^4.5.4"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "@babel/preset-typescript": "^7.24.0",
+    "@types/jest": "^29.5.12",
+    "@types/react": "~18.2.79",
+    "@types/three": "^0.165.0",
+    "@typescript-eslint/eslint-plugin": "^7.16.0",
+    "@typescript-eslint/parser": "^7.16.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.34.3",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "jest": "^29.7.0",
+    "prettier": "^3.3.2",
+    "ts-jest": "^29.2.2",
+    "typescript": "~5.3.3"
+  },
+  "private": true,
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/src/**/__tests__/**/*.test.ts",
+      "**/src/**/*.test.ts"
+    ],
+    "moduleFileExtensions": ["ts", "tsx", "js", "jsx"],
+    "transform": {
+      "^.+\\.(ts|tsx)$": ["ts-jest", { "tsconfig": { "jsx": "react", "esModuleInterop": true } }]
+    }
+  }
+}

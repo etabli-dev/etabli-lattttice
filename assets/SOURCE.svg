@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  lattttice — placeholder icon/splash source motif.
+  This SVG is the source of truth for the visual identity. The PNG files in this
+  folder are generated programmatically (see scripts/make-placeholder-assets.js)
+  and should be replaced before App Store / Play Store submission.
+
+  Motif: a 4D lattice represented as a tesseract Schlegel projection — outer cube
+  with an inner cube and 8 connecting edges, on the canonical lattttice dark-blue
+  background.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <rect width="1024" height="1024" fill="#0b0e14"/>
+  <g stroke="#7aa7ff" stroke-width="14" fill="none" stroke-linecap="round">
+    <!-- outer cube (Schlegel: tilted square) -->
+    <polygon points="192,304 832,224 832,800 192,720" />
+    <!-- inner cube -->
+    <polygon points="384,432 704,384 704,672 384,624" />
+    <!-- 8 edges from outer to inner -->
+    <line x1="192" y1="304" x2="384" y2="432"/>
+    <line x1="832" y1="224" x2="704" y2="384"/>
+    <line x1="832" y1="800" x2="704" y2="672"/>
+    <line x1="192" y1="720" x2="384" y2="624"/>
+  </g>
+  <g fill="#3aa0ff">
+    <circle cx="192" cy="304" r="22"/>
+    <circle cx="832" cy="224" r="22"/>
+    <circle cx="832" cy="800" r="22"/>
+    <circle cx="192" cy="720" r="22"/>
+  </g>
+  <g fill="#ffb455">
+    <circle cx="384" cy="432" r="18"/>
+    <circle cx="704" cy="384" r="18"/>
+    <circle cx="704" cy="672" r="18"/>
+    <circle cx="384" cy="624" r="18"/>
+  </g>
+  <text x="512" y="930" font-family="-apple-system, system-ui, sans-serif" font-size="92" font-weight="800"
+        fill="#e8eef7" text-anchor="middle" letter-spacing="2">lattttice</text>
+</svg>
