@@ -2,6 +2,8 @@
 
 A 4D 4×4×4×4 tic-tac-toe app — a tesseract of 256 cells with **520 winning lines**. Cross-platform React Native + Expo (TypeScript, strict).
 
+Repository: <https://github.com/etabli-dev/etabli-lattttice>
+
 > Naming: R/Bioconductor-style playful lowercase, stretching "lattice" (the 4D grid) into `lattttice`.
 
 ## Running
