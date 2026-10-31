@@ -19,16 +19,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     slug: 'etabli-lattttice',
     scheme: 'etabli-lattttice',
     description: 'A 4D 4×4×4×4 tic-tac-toe — the tesseract board, on a phone.',
-    version: '1.0.0',
+    version: config.version ?? '0.1.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'automatic',
     runtimeVersion: { policy: 'appVersion' },
-    splash: {
-      image: './assets/splash.png',
-      resizeMode: 'contain',
-      backgroundColor: '#0b0e14',
-    },
     ios: {
       ...(config.ios ?? {}),
       bundleIdentifier: `com.raban.lattttice${bundleSuffix}`,
@@ -51,11 +46,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     web: {
       favicon: './assets/favicon.png',
     },
-    plugins: ['expo-splash-screen'],
-    extra: {
-      eas: {
-        projectId: 'REPLACE_WITH_EAS_PROJECT_ID',
-      },
-    },
+    plugins: config.plugins,
+
   };
 };

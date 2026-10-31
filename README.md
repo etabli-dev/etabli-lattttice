@@ -6,14 +6,47 @@ Repository: <https://github.com/etabli-dev/etabli-lattttice>
 
 > Naming: R/Bioconductor-style playful lowercase, stretching "lattice" (the 4D grid) into `lattttice`.
 
+The game uses a fixed dark palette; changing the device light/dark setting
+does not switch the game theme.
+
 ## Running
 
 ```bash
-npm install --legacy-peer-deps
+npm ci
 npx expo start
 ```
 
-Then press `i` / `a` to launch the iOS Simulator or Android Emulator (Expo Go is fine for development).
+Prerequisites: Node.js 22.23.4, npm and Git. `npm run web` starts the
+browser app. `npm run android` builds for a connected device/emulator with JDK 17
+and the Android SDK (`ANDROID_HOME` set; compile SDK 37, target SDK 36).
+`npm run ios` requires macOS and Xcode 26.4+. Device operation has its own
+acceptance gate; exported JavaScript bundles alone do not verify it.
+
+### Standalone Android development APK
+
+For an APK with its JavaScript included, install Android SDK Platform 37.0
+(`sdkmanager` package `platforms;android-37.0`),
+Build Tools 37.0.0, NDK 27.1.12297006 and CMake 3.22.1 using Android Studio's
+SDK Manager. Accept the SDK licenses, set `JAVA_HOME` to JDK 17 and
+`ANDROID_HOME` to the SDK directory, and put its `platform-tools` on `PATH`.
+From the repository root:
+
+```sh
+npm ci
+npx expo prebuild --platform android --no-install
+(cd android && ./gradlew --no-daemon --max-workers=2 \
+  '-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8' \
+  -PreactNativeArchitectures=arm64-v8a :app:assembleRelease)
+adb install -r android/app/build/outputs/apk/release/app-release.apk
+```
+
+Launch **lattttice** on the connected arm64 device/emulator. The manifest supports
+Android 7.0 / API 24 and later and targets API 36. This release build variant
+embeds the game bundle, so Metro is unnecessary after installation. Expo's
+generated project signs it with the public Android Debug key: it is a local
+development artifact, not a store release. The ordinary `assembleDebug` APK
+instead expects Metro. CI prepares both variants under the same development
+label; signing for distribution and physical-device acceptance remain separate.
 
 Scripts:
 
@@ -51,7 +84,7 @@ Toggle **Mode → vs Computer** to play the AI as O. Three levels:
 
 - **Easy** — random legal, but always takes an immediate win and blocks an immediate loss.
 - **Medium** — 1-ply strength heuristic (`src/overlay/strength.ts`).
-- **Hard** — iterative-deepening negamax with alpha-beta pruning over the same heuristic. Soft 600 ms budget, branching cap 12. Runs asynchronously off the UI thread (yields via `setTimeout(0)`).
+- **Hard** — iterative-deepening negamax with alpha-beta pruning over the same heuristic. Soft 600 ms budget, branching cap 12. Cooperatively yields the JavaScript event loop via `setTimeout(0)`; it does not use a separate worker thread.
 
 ## Strength overlay & top moves
 
@@ -103,3 +136,20 @@ App.tsx
 ## Persistence
 
 The current game and all settings are persisted via `@react-native-async-storage/async-storage` and restored on relaunch. "New Game" resets the board and probability history.
+
+## Verification and distribution
+
+```sh
+npm run check
+npx expo install --check
+npm run export -- --platform all
+npx playwright install chromium
+npm run test:browser
+```
+
+The production web export is `dist/`. Serve it at the origin root over HTTP(S).
+The browser suite exercises the built app at phone dimensions with external
+networking blocked. Read [the refinement record](docs/refinement-2026-10.md)
+for observed results, dependency audit findings, and device/iOS/store
+requirements. There is no configured EAS project or store
+submission in this checkout. Link your own EAS project before using EAS Build.

@@ -17,6 +17,7 @@ export async function estimateProb(
   opts: RolloutOptions = {},
 ): Promise<ProbPoint> {
   const r: RolloutResult = await runRolloutsAsync(board, { samples: 200, ...opts });
+  if (r.samples === 0) throw new Error('Analysis cancelled before any sample was computed');
   return { ply, pX: r.pX, pO: r.pO, pDraw: r.pDraw };
 }
 

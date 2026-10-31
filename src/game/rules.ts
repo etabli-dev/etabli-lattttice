@@ -17,7 +17,7 @@ export function otherPlayer(p: Player): Player {
 
 export function isLegal(board: BoardState, idx: number): boolean {
   if (board.winner !== null) return false;
-  if (idx < 0 || idx >= TOTAL_CELLS) return false;
+  if (!Number.isInteger(idx) || idx < 0 || idx >= TOTAL_CELLS) return false;
   return board.cells[idx] === null;
 }
 

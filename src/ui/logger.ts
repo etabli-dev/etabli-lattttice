@@ -16,12 +16,10 @@ function devMode(): boolean {
 export const log = {
   warn: (...args: unknown[]): void => {
     if (devMode()) {
-      // eslint-disable-next-line no-console
       console.warn('[lattttice]', ...args);
     }
   },
   error: (...args: unknown[]): void => {
-    // eslint-disable-next-line no-console
     console.error('[lattttice]', ...args);
   },
 };

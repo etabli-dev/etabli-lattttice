@@ -2,7 +2,9 @@
  * Store-level tests. We mock @react-native-async-storage/async-storage with an in-memory
  * implementation so persist/hydrate round-trip can be tested in node.
  */
-import { useStore } from '../store';
+import { cancelBackgroundWork, useStore } from '../store';
+
+afterEach(cancelBackgroundWork);
 import { toIdx } from '../../game/coords';
 import { TOTAL_CELLS } from '../../game/types';
 
@@ -28,6 +30,7 @@ jest.mock('@react-native-async-storage/async-storage', () => {
 });
 
 function reset(): void {
+  cancelBackgroundWork();
   useStore.setState({
     cells: new Array(TOTAL_CELLS).fill(null),
     toMove: 'X',
@@ -125,5 +128,27 @@ describe('view switching never mutates board (D1 add-on)', () => {
     const after = useStore.getState();
     expect(after.cells).toEqual(cellsBefore);
     expect(after.toMove).toBe(toMoveBefore);
+  });
+});
+
+describe('AI cancellation', () => {
+  beforeEach(reset);
+  it('changing to hotseat while the AI yields never plays an extra move', async () => {
+    useStore.setState({ mode: 'vs-computer', aiLevel: 'easy' });
+    useStore.getState().playAt(0);
+    useStore.getState().setMode('hotseat');
+    await new Promise<void>((resolve) => setTimeout(resolve, 20));
+    expect(useStore.getState().moveLog).toEqual([0]);
+    expect(useStore.getState().isThinking).toBe(false);
+  });
+  it('an old run cannot act on a new game after reset', async () => {
+    useStore.setState({ mode: 'vs-computer', aiLevel: 'easy' });
+    useStore.getState().playAt(0);
+    useStore.getState().newGame();
+    useStore.getState().setMode('hotseat');
+    useStore.getState().playAt(3);
+    await new Promise<void>((resolve) => setTimeout(resolve, 20));
+    expect(useStore.getState().moveLog).toEqual([3]);
+    expect(useStore.getState().isThinking).toBe(false);
   });
 });

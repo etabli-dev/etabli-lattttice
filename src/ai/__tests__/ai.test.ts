@@ -4,7 +4,7 @@ import { applyMove, createEmptyBoard, isLegal, legalMoves } from '../../game/rul
 import { chooseEasyMove } from '../easy';
 import { chooseMediumMove } from '../medium';
 import { chooseHardMove, searchHardMove, searchHardMoveAsync } from '../hard';
-import { runRolloutsSync } from '../montecarlo';
+import { runRolloutsSync, runRolloutsAsync } from '../montecarlo';
 import { findBlockingMove, findImmediateWin } from '../threats';
 
 function boardWithThreatX(): ReturnType<typeof createEmptyBoard> {
@@ -134,12 +134,22 @@ describe('Monte Carlo rollouts', () => {
     expect(r.pO).toBeCloseTo(0, 5);
   });
 
-  it('respects abort signal', () => {
+  it('reports zero samples when already cancelled', async () => {
     const b = createEmptyBoard();
+    const opts = { samples: 5, aborted: () => true };
+    expect(runRolloutsSync(b, opts)).toEqual({ pX: 0, pO: 0, pDraw: 0, samples: 0 });
+    expect(await runRolloutsAsync(b, opts)).toEqual({ pX: 0, pO: 0, pDraw: 0, samples: 0 });
+  });
+  it.each([0, -1, 1.5, NaN, Infinity, 10001])('rejects invalid sample budgets: %s', (samples) => {
+    expect(() => runRolloutsSync(createEmptyBoard(), { samples })).toThrow(RangeError);
+  });
+  it('yields and honours cancellation between batches', async () => {
     let aborted = false;
-    setTimeout(() => (aborted = true), 0);
-    const r = runRolloutsSync(b, { samples: 5, aborted: () => aborted });
-    expect(r.samples).toBeGreaterThan(0);
+    setTimeout(() => { aborted = true; }, 0);
+    const result = await runRolloutsAsync(createEmptyBoard(), { samples: 10, yieldEvery: 1, aborted: () => aborted });
+    expect(result.samples).toBe(1);
+    expect(result.pX + result.pO + result.pDraw).toBeCloseTo(1);
+    await expect(runRolloutsAsync(createEmptyBoard(), { yieldEvery: 0 })).rejects.toThrow(RangeError);
   });
 });
 

@@ -15,6 +15,21 @@ export interface RolloutOptions {
   yieldEvery?: number; // cooperative yield interval for async API
 }
 
+function sampleCount(value: number | undefined, fallback: number, label: string): number {
+  const count = value ?? fallback;
+  if (!Number.isInteger(count) || count < 1 || count > 10000) {
+    throw new RangeError(`${label} must be an integer between 1 and 10000`);
+  }
+  return count;
+}
+
+function result(x: number, o: number, d: number): RolloutResult {
+  const total = x + o + d;
+  // A cancellation before the first rollout is no evidence, not one synthetic sample.
+  return { pX: total ? x / total : 0, pO: total ? o / total : 0,
+    pDraw: total ? d / total : 0, samples: total };
+}
+
 function findImmediateWinFast(
   cells: Mark[],
   side: Player,
@@ -78,7 +93,7 @@ export function runRolloutsSync(
   board: BoardState,
   opts: RolloutOptions = {},
 ): RolloutResult {
-  const samples = opts.samples ?? 200;
+  const samples = sampleCount(opts.samples, 200, 'samples');
   let x = 0;
   let o = 0;
   let d = 0;
@@ -89,8 +104,7 @@ export function runRolloutsSync(
     else if (r === 'O') o++;
     else d++;
   }
-  const total = x + o + d || 1;
-  return { pX: x / total, pO: o / total, pDraw: d / total, samples: total };
+  return result(x, o, d);
 }
 
 /**
@@ -101,8 +115,8 @@ export async function runRolloutsAsync(
   board: BoardState,
   opts: RolloutOptions = {},
 ): Promise<RolloutResult> {
-  const samples = opts.samples ?? 200;
-  const yieldEvery = opts.yieldEvery ?? 25;
+  const samples = sampleCount(opts.samples, 200, 'samples');
+  const yieldEvery = sampleCount(opts.yieldEvery, 25, 'yieldEvery');
   let x = 0;
   let o = 0;
   let d = 0;
@@ -116,6 +130,5 @@ export async function runRolloutsAsync(
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
     }
   }
-  const total = x + o + d || 1;
-  return { pX: x / total, pO: o / total, pDraw: d / total, samples: total };
+  return result(x, o, d);
 }

@@ -17,3 +17,6 @@ android/
 play-store-service-account.json
 google-services.json
 GoogleService-Info.plist
+
+/playwright-report/
+/test-results/

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { decodeSavedGame } from './persistence';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   AiLevel,
@@ -59,6 +60,8 @@ export interface LattticeStore {
 
   // actions
   hydrated: boolean;
+  storageError: string | null;
+  cancelBackgroundWork: () => void;
   hydrate: () => Promise<void>;
   newGame: () => void;
   playAt: (idx: number) => void;
@@ -94,7 +97,18 @@ let probAbort: { cancelled: boolean } = { cancelled: false };
 let probTimer: ReturnType<typeof setTimeout> | null = null;
 let aiAbort: { cancelled: boolean } = { cancelled: false };
 
+let writes: Promise<void> = Promise.resolve();
+let preserveUnreadSave = false;
+
+export function cancelBackgroundWork(): void {
+  aiAbort.cancelled = true;
+  probAbort.cancelled = true;
+  if (probTimer) clearTimeout(probTimer);
+  probTimer = null;
+}
+
 async function persist(state: LattticeStore): Promise<void> {
+  if (!state.hydrated || preserveUnreadSave) return;
   const snapshot: PersistedState = {
     cells: state.cells,
     toMove: state.toMove,
@@ -110,10 +124,14 @@ async function persist(state: LattticeStore): Promise<void> {
     currentW: state.currentW,
   };
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+    const serialized = JSON.stringify(snapshot);
+    writes = writes.catch(() => undefined).then(() => AsyncStorage.setItem(STORAGE_KEY, serialized));
+    await writes;
+    if (useStore.getState().storageError !== null) useStore.setState({ storageError: null });
   } catch (e) {
     // best-effort; swallow to avoid crashing on storage failure
     log.warn('persist failed', e);
+    useStore.setState({ storageError: 'Could not save this game. Keep the app open and free some storage.' });
   }
 }
 
@@ -134,13 +152,19 @@ export const useStore = create<LattticeStore>((set, get) => ({
   currentZ: 0,
   currentW: 0,
   hydrated: false,
+  storageError: null,
+  cancelBackgroundWork,
 
   hydrate: async (): Promise<void> => {
+    cancelBackgroundWork();
     try {
+      await writes.catch(() => undefined);
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw) as PersistedState;
+        const parsed = decodeSavedGame(raw);
+        preserveUnreadSave = false;
         set({
+          storageError: null,
           cells: parsed.cells,
           toMove: parsed.toMove,
           winner: parsed.winner,
@@ -157,15 +181,19 @@ export const useStore = create<LattticeStore>((set, get) => ({
           hydrated: true,
         });
       } else {
-        set({ hydrated: true });
+        preserveUnreadSave = false;
+        set({ hydrated: true, storageError: null });
       }
     } catch (e) {
       log.warn('hydrate failed', e);
-      set({ hydrated: true });
+      preserveUnreadSave = true;
+      set({ hydrated: true, storageError: 'The saved game could not be loaded and has been preserved. New game replaces it.' });
     }
   },
 
   newGame: (): void => {
+    preserveUnreadSave = false;
+    set({ storageError: null });
     aiAbort.cancelled = true;
     aiAbort = { cancelled: false };
     probAbort.cancelled = true;
@@ -192,7 +220,7 @@ export const useStore = create<LattticeStore>((set, get) => ({
   playAt: (idx: number): void => {
     const state = get();
     const board = boardStateFromSlice(state);
-    if (!isLegal(board, idx)) return;
+    if (!state.hydrated || !isLegal(board, idx)) return;
     // D4 gate: in vs-computer mode the AI (O) is the only legal mover when it's O's turn.
     // Block fast double-taps that would otherwise let the human play O's move.
     if (state.mode === 'vs-computer' && state.toMove === 'O') return;
@@ -213,7 +241,9 @@ export const useStore = create<LattticeStore>((set, get) => ({
   },
 
   setMode: (mode: Mode): void => {
-    set({ mode });
+    aiAbort.cancelled = true;
+    aiAbort = { cancelled: false };
+    set({ mode, isThinking: false });
     void persist(get());
     if (get().mode === 'vs-computer') void get().runAiIfNeeded();
   },
@@ -244,13 +274,12 @@ export const useStore = create<LattticeStore>((set, get) => ({
     if (s.toMove !== 'O') return;
     if (s.isThinking) return;
     set({ isThinking: true });
-    aiAbort.cancelled = false;
+    aiAbort.cancelled = true;
+    const myAbort = { cancelled: false };
+    aiAbort = myAbort;
     // Yield once so the UI can render the "thinking" indicator before search starts.
     await new Promise<void>((resolve) => setTimeout(resolve, 0));
-    if (aiAbort.cancelled) {
-      set({ isThinking: false });
-      return;
-    }
+    if (myAbort.cancelled || aiAbort !== myAbort) return;
     const board = boardStateFromSlice(get());
     let move: number | null = null;
     try {
@@ -263,23 +292,20 @@ export const useStore = create<LattticeStore>((set, get) => ({
           timeBudgetMs: 600,
           depth: 4,
           branchCap: 24,
-          aborted: () => aiAbort.cancelled,
+          aborted: () => myAbort.cancelled,
         });
         move = res.move;
       }
     } catch (e) {
       log.warn('AI search failed', e);
     }
-    if (aiAbort.cancelled) {
-      set({ isThinking: false });
-      return;
-    }
+    if (myAbort.cancelled || aiAbort !== myAbort) return;
     set({ isThinking: false });
     if (move !== null) {
       // playAt enforces its own gating; bypass the vs-computer-O guard by clearing it temporarily?
       // Simpler: call applyMove path directly here so we don't recurse into runAiIfNeeded.
       const board2 = boardStateFromSlice(get());
-      if (isLegal(board2, move) && board2.toMove === 'O') {
+      if (get().mode === 'vs-computer' && isLegal(board2, move) && board2.toMove === 'O' && board2.cells === board.cells) {
         const next = applyMove(board2, move);
         set({
           cells: next.cells,
@@ -304,6 +330,7 @@ export const useStore = create<LattticeStore>((set, get) => ({
     }
     set({ isAnalysing: true });
     probTimer = setTimeout(async () => {
+      probTimer = null;
       const s = get();
       const board = boardStateFromSlice(s);
       const ply = s.moveLog.length;
@@ -325,7 +352,7 @@ export const useStore = create<LattticeStore>((set, get) => ({
         void persist(get());
       } catch (e) {
         log.warn('prob estimate failed', e);
-        set({ isAnalysing: false });
+        if (!myAbort.cancelled) set({ isAnalysing: false });
       }
     }, 120);
   },
