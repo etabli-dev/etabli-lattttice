@@ -41,7 +41,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#0b0e14',
       },
-      permissions: [], // app needs none
     },
     web: {
       favicon: './assets/favicon.png',

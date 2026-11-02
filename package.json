@@ -15,6 +15,7 @@
     "prebuild": "expo prebuild",
     "export": "expo export",
     "test:browser": "playwright test",
+    "check:android-permissions": "node tool/check-android-permissions.mjs",
     "check": "npm run typecheck && npm run lint && npm test -- --runInBand"
   },
   "dependencies": {
