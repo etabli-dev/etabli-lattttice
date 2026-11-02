@@ -1,4 +1,4 @@
-# October 2026 refinement
+# October–November 2026 refinement
 
 ## SDK package provisioning follow-up
 
@@ -139,6 +139,25 @@ Debug APK SHA-256: `65296c6a1baf66861e05e27205037f67e610c8bd2e08e6511b33b82cec96
 
 Standalone development APK SHA-256: `4db4aed6ba28a80c987a0e4f4daca287f9b00482df6da942e5c3d7e81c56abdb`.
 
+### Installed Android journey — 2026-11-02
+
+The permission-repaired standalone development APK, SHA-256
+`4db4aed6ba28a80c987a0e4f4daca287f9b00482df6da942e5c3d7e81c56abdb`,
+passed an actual API 35 ARM64 emulator journey with 4 KiB pages and guest external
+networking disabled. It used its embedded JavaScript bundle without Metro.
+Seven Hotseat moves in the z=0/w=0 slice produced an X win; the exact winning
+board survived force-stop/relaunch. Grid, Slices, 3D and Heat rendered in the
+installed native application.
+
+The synthetic seven-move win was retained; no app data was cleared or reset.
+Screenshots, fresh UI hierarchies, process logs, the install receipt and artifact
+hash are retained in the suite workspace
+`.refinement/2026-10-30/android-local/games-flutter-20261102-pass1/`
+(`lattttice-result.json`, `RESULTS.md`). This closes the scoped emulator gameplay,
+view-rendering and restart-persistence checks. It does not establish native AI
+reply/cancellation, broader lifecycle/accessibility/performance, physical-device,
+16 KiB or iOS acceptance. The APK uses the Android Debug key, not distribution signing.
+
 ### Remaining acceptance and next action
 
 The game uses fixed dark React Native colors. The existing Expo
@@ -146,10 +165,7 @@ The game uses fixed dark React Native colors. The existing Expo
 do not make those explicit game colors adaptive. The README states the fixed
 appearance. Adaptive game themes remain outside this repair scope.
 
-The October 31 interactive AVD attempts suffered documented system-wide failures; no native game journey was completed in that attempt. Dated later device results belong to the suite workspace journey receipts. A healthy emulator or physical arm64 device must still verify
-play, reload, view changes, AI cancellation, lifecycle, accessibility, performance
-and 16 KiB-device behavior. Static alignment checks alone do not establish those
-runtime outcomes. iOS native compilation requires Xcode 26.4+ (absent here),
+The October 31 interactive AVD attempts suffered documented system-wide failures; no native game journey was completed in that attempt. The November 2 scoped emulator results above establish Hotseat play, restart persistence and native view rendering. Native AI reply/cancellation, broader lifecycle, accessibility, performance, physical-device and 16 KiB-device checks remain open. Static alignment checks alone do not establish those remaining runtime outcomes. iOS native compilation requires Xcode 26.4+ (absent here),
 followed by iOS device checks. Prepare private distribution signing and store
 metadata after the acceptance checks. No store release or submission was performed.
 
