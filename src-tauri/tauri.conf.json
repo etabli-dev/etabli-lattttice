@@ -1,0 +1,73 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "etabli-lattttice",
+  "version": "../package.json",
+  "identifier": "com.raban.lattttice",
+  "build": {
+    "beforeDevCommand": "npx expo start --port 19007",
+    "devUrl": "http://localhost:19007",
+    "beforeBuildCommand": "npm run export -- --platform web",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "lattttice",
+        "width": 720,
+        "height": 900,
+        "minWidth": 400,
+        "minHeight": 600,
+        "center": true,
+        "resizable": true,
+        "preventOverflow": true,
+        "backgroundColor": "#0b0e14"
+      }
+    ],
+    "security": {
+      "csp": {
+        "default-src": "'self'",
+        "script-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
+        "img-src": "'self' data: blob:",
+        "font-src": "'self' data:",
+        "connect-src": "'self'",
+        "object-src": "'none'",
+        "base-uri": "'none'",
+        "form-action": "'none'"
+      },
+      "dangerousDisableAssetCspModification": ["style-src"]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["deb", "appimage", "msi", "nsis", "app", "dmg"],
+    "icon": [
+      "icons/icon.png",
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "BoardGame",
+    "shortDescription": "4D tic-tac-toe on a 4×4×4×4 board",
+    "longDescription": "Tic-tac-toe on a tesseract: 256 cells, 520 winning lines, four board views and an optional computer opponent. Plays offline; saved games stay on this computer.",
+    "publisher": "R. Heller",
+    "copyright": "Copyright 2026 R. Heller",
+    "license": "Apache-2.0",
+    "licenseFile": "../LICENSE",
+    "homepage": "https://github.com/etabli-dev/etabli-lattttice",
+    "linux": {
+      "deb": {
+        "section": "games",
+        "files": {
+          "/usr/share/doc/etabli-lattttice/copyright": "../LICENSE"
+        }
+      }
+    },
+    "macOS": {
+      "signingIdentity": "-"
+    }
+  }
+}
