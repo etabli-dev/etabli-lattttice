@@ -5,6 +5,7 @@ import { toIdx } from '../game/coords';
 import { theme } from '../ui/theme';
 import { colorForMark } from './colors';
 import { describeCell } from './cellLabel';
+import { squareCell } from './squareCell';
 
 /**
  * Stacked layers (z-slices): fix `w` with a slider; show 4 z-layers side by side,
@@ -100,8 +101,7 @@ const styles = StyleSheet.create({
   layerLabel: { color: theme.textMuted, fontSize: 11 },
   layerRow: { flexDirection: 'row', gap: 4 },
   cell: {
-    flex: 1,
-    aspectRatio: 1,
+    ...squareCell,
     backgroundColor: theme.bg,
     borderRadius: 5,
     alignItems: 'center',

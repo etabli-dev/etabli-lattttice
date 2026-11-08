@@ -6,6 +6,7 @@ import { theme } from '../ui/theme';
 import { colorForMark, viridis } from './colors';
 import { scoreAllEmpty } from '../overlay/strength';
 import { describeCell } from './cellLabel';
+import { squareCell } from './squareCell';
 
 /**
  * Heat-view: shade ALL empty cells across the entire 4D grid by normalised move-strength
@@ -125,8 +126,7 @@ const styles = StyleSheet.create({
   },
   paneRow: { flexDirection: 'row', gap: 2, marginTop: 2 },
   cell: {
-    flex: 1,
-    aspectRatio: 1,
+    ...squareCell,
     borderRadius: 2,
     borderWidth: 0.5,
     borderColor: theme.border,

@@ -6,6 +6,7 @@ import type { Mark } from '../game/types';
 import { theme } from '../ui/theme';
 import { colorForMark } from './colors';
 import { describeCell } from './cellLabel';
+import { squareCell } from './squareCell';
 import { scoreAllEmpty, topNRanked } from '../overlay/strength';
 
 /**
@@ -129,8 +130,7 @@ const styles = StyleSheet.create({
   paneGrid: { gap: 2 },
   paneRow: { flexDirection: 'row', gap: 2 },
   cell: {
-    flex: 1,
-    aspectRatio: 1,
+    ...squareCell,
     backgroundColor: theme.bg,
     borderRadius: 3,
     alignItems: 'center',
