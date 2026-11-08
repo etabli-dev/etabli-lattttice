@@ -64,6 +64,28 @@ Shared-storage read/write, vibration and all other unexpected permissions are
 rejected; saved games use app-private storage.
 CI runs this check after building both APKs.
 
+### Desktop app (Linux, Windows, macOS)
+
+`src-tauri/` wraps the web export in a Tauri 2 window. Install Rust 1.90 or
+newer and, on Ubuntu/Debian, the WebKitGTK build packages
+(`libwebkit2gtk-4.1-dev build-essential file libxdo-dev
+libayatana-appindicator3-dev librsvg2-dev`). Then:
+
+```sh
+npm ci
+npm run desktop:dev                              # Expo dev server + debug window
+npm run desktop:build -- --bundles deb,appimage  # Linux packages
+```
+
+`desktop:build` runs the web export first and embeds `dist/` in the binary; the
+window loads nothing from the network. Packages are written to
+`src-tauri/target/release/bundle/`. The *Desktop packages* workflow builds the
+Linux `.deb` and AppImage, Windows MSI and NSIS installers and a universal macOS
+DMG; none of them carries a publisher signature (the macOS app is only ad-hoc
+signed). Saved games stay in the window's web storage
+(`~/.local/share/com.raban.lattttice/` on Linux). The desktop window currently
+shows the phone layout scaled to its width; the board area scrolls.
+
 Scripts:
 
 | command           | what it does                                     |
@@ -72,6 +94,8 @@ Scripts:
 | `npm run lint`    | ESLint over `src/` and `App.tsx`                 |
 | `npm run typecheck` | `tsc --noEmit` (strict)                        |
 | `npm start`       | `expo start`                                     |
+| `npm run desktop:dev` | Expo dev server + Tauri debug window         |
+| `npm run desktop:build` | web export + Tauri desktop packages        |
 
 ## The game
 
@@ -141,6 +165,7 @@ View switching uses Reanimated for a 220 ms crossfade — visual continuity betw
   /analysis    probability rollouts, ProbChart
   /ui          theme, segmented control, status bar, settings
 App.tsx
+/src-tauri     Tauri 2 desktop shell around the web export
 ```
 
 ## Accessibility
@@ -152,6 +177,18 @@ App.tsx
 ## Persistence
 
 The current game and all settings are persisted via `@react-native-async-storage/async-storage` and restored on relaunch. "New Game" resets the board and probability history.
+
+## Platforms
+
+Android and iOS run the game on phones and tablets; Linux, Windows and macOS run
+the same game in the desktop shell, where the 4D board has more room; the web
+export is a bonus. Android development APKs build in CI and passed an emulator
+journey. iOS has not been built natively. The Linux desktop packages were built
+and started locally; the Windows and macOS packages are set up to build in CI but
+have not been built yet. No store listing or desktop release exists; the only
+published binary is the older debug-signed APK in the `v0.1.0` pre-release. The
+[platform roadmap](docs/platform-roadmap.md) lists the exact state, signing
+prerequisites and milestones for every platform.
 
 ## Verification and distribution
 
