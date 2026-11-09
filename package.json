@@ -18,7 +18,9 @@
     "check:android-permissions": "node tool/check-android-permissions.mjs",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build",
-    "check": "npm run typecheck && npm run lint && npm test -- --runInBand"
+    "check": "npm run typecheck && npm run lint && npm test -- --runInBand && npm run test:policy",
+    "check:expo": "node tool/check-expo-versions.mjs",
+    "test:policy": "node --test tool/check-expo-versions.test.mjs tool/qualified-splash.test.mjs"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

@@ -36,7 +36,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0b0e14"
         }
-      ]
+      ],
+      "./plugins/with-qualified-splash.cjs"
     ]
   }
 }

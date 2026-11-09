@@ -25,3 +25,19 @@ test('hotseat win, saved reload, all views, reset and computer reply', async ({ 
   await expect(page.getByText('X to move', { exact: true })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+
+test('desktop board and controls share the window without horizontal overflow', async ({ page }, info) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  const board = page.getByTestId('game-board');
+  const settings = page.getByTestId('game-settings');
+  await expect(page.getByRole('button', { name: 'x3 y3 z3 w3, empty', exact: true })).toBeInViewport();
+  await expect(page.getByRole('button', { name: 'New Game', exact: true })).toBeVisible();
+  const b = await board.boundingBox();
+  const s = await settings.boundingBox();
+  expect(b).not.toBeNull(); expect(s).not.toBeNull();
+  expect(s!.x).toBeGreaterThanOrEqual(b!.x + b!.width);
+  expect(s!.x + s!.width).toBeLessThanOrEqual(1280);
+  await page.screenshot({ path: info.outputPath('desktop.png') });
+});

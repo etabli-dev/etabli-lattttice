@@ -106,6 +106,19 @@ describe('store persist / hydrate round-trip (E3)', () => {
   });
 });
 
+describe('saved slice selection', () => {
+  beforeEach(reset);
+  it('restores axis controls even when no move follows the selection', async () => {
+    useStore.getState().setCurrentZ(2);
+    useStore.getState().setCurrentW(3);
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    reset();
+    await useStore.getState().hydrate();
+    expect(useStore.getState().currentZ).toBe(2);
+    expect(useStore.getState().currentW).toBe(3);
+  });
+});
+
 describe('view switching never mutates board (D1 add-on)', () => {
   beforeEach(reset);
 
@@ -150,5 +163,28 @@ describe('AI cancellation', () => {
     await new Promise<void>((resolve) => setTimeout(resolve, 20));
     expect(useStore.getState().moveLog).toEqual([3]);
     expect(useStore.getState().isThinking).toBe(false);
+  });
+});
+
+
+describe('screen remount recovery', () => {
+  beforeEach(reset);
+  it('clears cancelled work indicators and lets the AI resume', async () => {
+    useStore.getState().playAt(0);
+    useStore.setState({ mode: 'vs-computer', aiLevel: 'easy' });
+    useStore.getState().setAiLevel('easy');
+    const oldRun = useStore.getState().runAiIfNeeded();
+    expect(useStore.getState().isThinking).toBe(true);
+    cancelBackgroundWork();
+    await oldRun;
+    expect(useStore.getState().isThinking).toBe(false);
+    expect(useStore.getState().isAnalysing).toBe(false);
+    const hydration = useStore.getState().hydrate();
+    expect(useStore.getState().hydrated).toBe(false);
+    await useStore.getState().runAiIfNeeded();
+    expect(useStore.getState().isThinking).toBe(false);
+    await hydration;
+    await useStore.getState().runAiIfNeeded();
+    expect(useStore.getState().moveLog).toHaveLength(2);
   });
 });

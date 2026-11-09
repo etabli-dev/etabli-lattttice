@@ -105,6 +105,7 @@ export function cancelBackgroundWork(): void {
   probAbort.cancelled = true;
   if (probTimer) clearTimeout(probTimer);
   probTimer = null;
+  useStore.setState({ isThinking: false, isAnalysing: false });
 }
 
 async function persist(state: LattticeStore): Promise<void> {
@@ -157,6 +158,7 @@ export const useStore = create<LattticeStore>((set, get) => ({
 
   hydrate: async (): Promise<void> => {
     cancelBackgroundWork();
+    set({ hydrated: false });
     try {
       await writes.catch(() => undefined);
       const raw = await AsyncStorage.getItem(STORAGE_KEY);
@@ -261,14 +263,16 @@ export const useStore = create<LattticeStore>((set, get) => ({
   },
   setCurrentZ: (z: number): void => {
     set({ currentZ: Math.max(0, Math.min(3, Math.floor(z))) });
+    void persist(get());
   },
   setCurrentW: (w: number): void => {
     set({ currentW: Math.max(0, Math.min(3, Math.floor(w))) });
+    void persist(get());
   },
 
   runAiIfNeeded: async (): Promise<void> => {
     const s = get();
-    if (s.mode !== 'vs-computer') return;
+    if (!s.hydrated || s.mode !== 'vs-computer') return;
     if (s.winner !== null) return;
     // In vs-computer, by convention the AI plays O. (Human is X, moves first.)
     if (s.toMove !== 'O') return;

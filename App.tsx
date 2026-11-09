@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
-import { Text, ScrollView, StatusBar as RNStatusBar, StyleSheet, View } from 'react-native';
+import { Text, ScrollView, StatusBar as RNStatusBar, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useStore } from './src/state/store';
@@ -15,6 +15,8 @@ export default function App(): React.ReactElement {
 }
 
 function Game(): React.ReactElement {
+  const { width, height } = useWindowDimensions();
+  const wide = width >= 900 && height >= 600;
   const hydrate = useStore((s) => s.hydrate);
   const hydrated = useStore((s) => s.hydrated);
   const storageError = useStore((s) => s.storageError);
@@ -37,11 +39,15 @@ function Game(): React.ReactElement {
       <View style={styles.root}>
         {storageError && <Text accessibilityRole="alert" style={{ color: theme.text }}>{storageError}</Text>}
         <StatusBar />
-        <ViewSwitcher />
-        <ScrollView style={styles.bottom}>
-          <ProbChart />
-          <SettingsPanel />
-        </ScrollView>
+        <View style={[styles.content, wide && styles.wide]}>
+          <View testID="game-board" style={[styles.board, wide && { maxWidth: Math.min(width - 340, height - 180) }]}>
+            <ViewSwitcher />
+          </View>
+          <ScrollView testID="game-settings" style={wide ? styles.sidebar : styles.bottom}>
+            <ProbChart />
+            <SettingsPanel />
+          </ScrollView>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -50,5 +56,9 @@ function Game(): React.ReactElement {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.bg },
   root: { flex: 1 },
+  content: { flex: 1 },
+  wide: { flexDirection: 'row', justifyContent: 'center' },
+  board: { flex: 1 },
+  sidebar: { width: 320, flexGrow: 0 },
   bottom: { maxHeight: 360 },
 });

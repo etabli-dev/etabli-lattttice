@@ -1,6 +1,8 @@
 # Platform roadmap
 
-Status as of 2026-11-08. This page plans lattttice for Ubuntu/Debian, Windows,
+Status as of 2026-11-09. See the
+[Apple platform audit](apple-audit-2026-11-08.md) for native build and desktop-layout
+verification. This page plans lattttice for Ubuntu/Debian, Windows,
 macOS, iOS and Android, with the browser build as a bonus. It separates what has
 been built and checked from what is only configured. "CI only" means a workflow
 exists but its result has not been observed yet.
@@ -15,8 +17,9 @@ cheap and needs no second user interface.
   the computer. The 256-cell board is dense on a phone screen.
 - **Ubuntu/Debian, Windows and macOS** are where the 4D board benefits most: a
   large window has room for the 4×4 grid of panes, the slices and the heat map.
-  The desktop app is a Tauri 2 window around the web export; it still shows the
-  phone layout, and a desktop layout is milestone M4.
+  The desktop app is a Tauri 2 window around the web export. Wide windows show
+  a height-limited board with chart and settings beside it; smaller windows keep
+  the phone layout.
 - **Web** is a bonus: the export runs in a current browser, but no hosted
   deployment exists.
 
@@ -27,29 +30,38 @@ and no synchronisation between devices.
 
 | Platform | Status | Technology | How it is built | What is verified | Distribution |
 |---|---|---|---|---|---|
-| Ubuntu/Debian | Desktop shell added; unsigned packages | Tauri 2.12 (WebKitGTK 4.1) around the Expo web export | `npm run desktop:build -- --bundles deb,appimage`; CI job `desktop.yml` on `ubuntu-24.04` | Locally on Ubuntu 26.04 x86_64 (2026-11-08): `.deb` and AppImage build, `dpkg-deb -I/-c`, launch under Xvfb (window 720×900, alive after 10 s, no panic), seven-move hotseat win in the shell, Grid/Slices/3D/Heat views, relaunch keeps the game, AppImage launch, `desktop:dev` launch. Not verified: a real desktop session with GPU, installation with `apt`, other distributions; CI job not run yet | None (CI artifact once pushed) |
-| Windows | Configured, not built | Tauri 2.12 (WebView2) | CI job `desktop.yml` on `windows-latest`: MSI (WiX) and NSIS `.exe` | Not verified locally (CI only) | None |
-| macOS | Configured, not built | Tauri 2.12 (WKWebView), universal binary | CI job `desktop.yml` on `macos-15`: DMG, ad-hoc signed | Not verified locally (CI only) | None |
-| iOS | Prepared for EAS, never built natively | Expo SDK 58, React Native 0.88.1, bundle ID `com.raban.lattttice` | EAS Build (`eas.json` profiles) or `npx expo run:ios` on a Mac with Xcode 26.4+ | iOS JavaScript bundle export (`npm run export -- --platform all`) in CI run [41490189836](https://github.com/etabli-dev/etabli-lattttice/actions/runs/41490189836). No native compile, simulator or device run; no EAS project linked | None |
-| Android | Development APKs build in CI | Expo prebuild + Gradle, package `com.raban.lattttice`, min API 24, target API 36 | CI job `android` in `checks.yml`: debug and standalone release APK (Android Debug key) | CI run 41490189836 (APKs, permission gate, embedded bundle); emulator journey on API 35 ARM64 on 2026-11-02 ([refinement record](refinement-2026-10.md)). Not verified: physical device, native AI cancellation, 16 KiB device, release signing, AAB | GitHub pre-release [v0.1.0](https://github.com/etabli-dev/etabli-lattttice/releases/tag/v0.1.0) (2026-06-24): debug-signed universal APK built before the SDK 58 refinement, so it lacks the October–November changes. CI artifacts are labelled development. No store listing |
+| Ubuntu/Debian | Desktop shell added; unsigned packages | Tauri 2.12 (WebKitGTK 4.1) around the Expo web export | `npm run desktop:build -- --bundles deb,appimage`; CI job `desktop.yml` on `ubuntu-24.04` | Locally on Ubuntu 26.04 x86_64 (2026-11-08): `.deb` and AppImage build, `dpkg-deb -I/-c`, launch under Xvfb (window 720×900, alive after 10 s, no panic), seven-move hotseat win in the shell, Grid/Slices/3D/Heat views, relaunch keeps the game, AppImage launch, `desktop:dev` launch. Not verified: a real desktop session with GPU, installation with `apt`, other distributions; baseline desktop CI [passed](https://github.com/etabli-dev/etabli-lattttice/actions/runs/42525632875); current changes await a new run | None (CI artifact once pushed) |
+| Windows | Baseline packages built in CI; native acceptance open | Tauri 2.12 (WebView2) | CI job `desktop.yml` on `windows-latest`: MSI (WiX) and NSIS `.exe` | Baseline desktop CI [passed](https://github.com/etabli-dev/etabli-lattttice/actions/runs/42525632875); not run locally, current changes await a new run | None |
+| macOS | Local arm64 DMG built; GUI acceptance open | Tauri 2.12 (WKWebView), universal binary | CI job `desktop.yml` on `macos-15`: DMG, ad-hoc signed | Local arm64 DMG integrity and extracted app strict ad-hoc signature checks passed on 2026-11-09; interactive GUI blocked ([audit](apple-audit-2026-11-08.md)); no Intel runtime test | None |
+| iOS | Unsigned native Release compiled; EAS not linked | Expo SDK 58, React Native 0.88.1, bundle ID `com.raban.lattttice` | EAS Build (`eas.json` profiles) or `npx expo run:ios` on a Mac with Xcode 26.4+ | iOS JavaScript bundle export (`npm run export -- --platform all`) in CI run [41490189836](https://github.com/etabli-dev/etabli-lattttice/actions/runs/41490189836). Unsigned arm64 iPhoneOS Release compiled locally on 2026-11-09 with Xcode 27.2 and an embedded game bundle ([audit](apple-audit-2026-11-08.md)); no simulator or device run, no EAS project linked | None |
+| Android | Local APKs/AAB and lint passed; development signing | Expo prebuild + Gradle, package `com.raban.lattttice`, min API 24, target API 36 | CI job `android` in `checks.yml`: debug/release APK, release AAB, lint/model checks (Android Debug key) | CI run 41490189836 (APKs, permission gate, embedded bundle); emulator journey on API 35 ARM64 on 2026-11-02 ([refinement record](refinement-2026-10.md)). Local arm64 debug/release APK and AAB builds, lint/model gates, package permissions and 16 KiB ZIP/ELF alignment passed on 2026-11-09 ([audit](apple-audit-2026-11-08.md)). Not verified: physical device, native AI cancellation, 16 KiB device runtime, release signing | GitHub pre-release [v0.1.0](https://github.com/etabli-dev/etabli-lattttice/releases/tag/v0.1.0) (2026-06-24): debug-signed universal APK built before the SDK 58 refinement, so it lacks the October–November changes. CI artifacts are labelled development. No store listing |
 | Web (bonus) | Export works | `react-native-web` | `npm run export -- --platform web` → `dist/` | Playwright Chromium journey (win, reload, four views, reset, computer reply) in CI and locally (2026-11-08), also with the desktop shell's CSP applied; the export also renders in WebKitGTK | Not hosted (GitHub Pages serves the documentation only) |
 
 Notes on the existing release documents: `STORE-LISTING.md` holds usable store
 copy. `SUBMISSION-lattttice.md` (2026-06-23) predates the SDK 58 refinement in
 places: the app version is `0.1.0` (not `1.0.0`), `app.config.ts` has no
 `extra.eas.projectId` placeholder any more, the Three.js dependencies it mentions
-were removed, its gate results (53 tests) are older than the current 75 tests, and
+were removed, its gate results (53 tests) are older than the current 77 tests, and
 it still calls the icon a placeholder although the suite icon was wired in on
 2026-06-24. `eas.json` still contains placeholder submit values
 (`REPLACE_WITH_APPLE_ID_EMAIL`, `REPLACE_WITH_APPSTORECONNECT_APP_ID`,
 `REPLACE_WITH_APPLE_TEAM_ID`) and expects `./play-store-service-account.json`
 (git-ignored, not present).
 
-CI note: on 2026-11-08 `npx expo install --check`, a step of the existing
-*Application checks* workflow, reports newer SDK 58 patches (`expo` 58.0.23,
-`expo-splash-screen` 58.0.13, `react-native-safe-area-context` 5.11.1, all
-published on 2026-11-03). The next run of that workflow will fail at this step
-until the patch set is adopted; this is independent of the desktop shell.
+The raw Expo checker recommends `expo` 58.0.23, `expo-splash-screen` 58.0.13
+and `react-native-safe-area-context` 5.11.1, published on 3 November. CI now runs
+`npm run check:expo`, which delegates to that checker and permits only the reviewed
+58.0.22 → 58.0.23, 58.0.12 → 58.0.13 and 5.10.1 → 5.11.1 recommendations until
+2026-11-17 00:00 UTC, under the two-week dependency age rule. Unknown mismatches,
+extra diagnostics, tool failures and expired exceptions still fail. Ten offline
+fixtures exercise these boundaries. This temporary quarantine is distinct from
+native compatibility, which is checked by the builds in the
+[Apple platform audit](apple-audit-2026-11-08.md). No dependency versions changed.
+
+The [dependency review](dependency-audit-2026-11-09.md) tracks the remaining
+three npm advisories and their upstream/age constraints separately from Expo
+compatibility. Recheck eligible upstream fixes after 10 November; the current
+parent ranges still need a compatible upstream update.
 
 ## 3. Architecture
 
@@ -78,12 +90,10 @@ verified). The shared `src/views/squareCell.ts` aligns those cells to the start 
 the row on the web only; that renders correctly in WebKitGTK and Chromium and leaves
 the native layout unchanged.
 
-**Target.** Keep one code base. Desktop-specific code stays in `src-tauri/`. The
-large-screen benefit needs a layout that uses the window height: today the phone
-layout simply scales with the window width, so on a wide window the cells grow and
-the board area scrolls. A desktop layout (board sized to the available height,
-probability chart and settings in a side column) belongs in the shared React
-Native code behind window-size checks, so tablets profit too. The saved-game key
+**Layout.** One code base handles phones and desktop windows. Desktop shell code
+stays in `src-tauri/`; shared React Native code selects the wider layout at
+900 × 600 or larger. The board width is limited by the available window height,
+with the chart and settings in a side column. The saved-game key
 (`lattttice:v1`) stays the same on every platform.
 
 ## 4. Per-platform execution
@@ -127,7 +137,7 @@ Native code behind window-size checks, so tablets profit too. The saved-game key
   `WINDOWS_CERTIFICATE` (base64 PFX) and `WINDOWS_CERTIFICATE_PASSWORD`, or the
   Azure signing credentials used by a `bundle.windows.signCommand`.
 - **CI job:** `desktop.yml`, `windows-latest`, artifact
-  `lattttice-desktop-windows-x64`. Not verified locally (CI only).
+  `lattttice-desktop-windows-x64`. Baseline desktop CI [passed](https://github.com/etabli-dev/etabli-lattttice/actions/runs/42525632875); not run locally, current changes await a new run.
 - **Acceptance:** CI green; on Windows 11 x64 both installers install, the Start
   menu entry starts the game, the journey above passes, uninstall removes the
   program; SmartScreen behaviour of the unsigned build is recorded.
@@ -148,7 +158,8 @@ Native code behind window-size checks, so tablets profit too. The saved-game key
   (app-specific password)/`APPLE_TEAM_ID`. Tauri signs and notarizes when they are
   set. The same membership covers iOS.
 - **CI job:** `desktop.yml`, `macos-15`, artifact
-  `lattttice-desktop-macos-universal`. Not verified locally (CI only).
+  `lattttice-desktop-macos-universal`. Local arm64 package checks passed;
+  interactive acceptance and Intel runtime remain open ([audit](apple-audit-2026-11-08.md)).
 - **Acceptance:** CI green; the DMG opens on Apple Silicon and Intel Macs, the
   cells are square in WKWebView, the app runs the journey above; after signing,
   `spctl -a -vv` reports a notarized Developer ID app and it opens without
@@ -164,7 +175,7 @@ Native code behind window-size checks, so tablets profit too. The saved-game key
   (internal distribution on devices, `simulator: false`) and `production`
   (auto-incremented build numbers). All use the `m-medium` builder;
   `appVersionSource` is `remote`.
-- **What is missing:** no EAS project is linked, no native iOS build has ever run,
+- **What is missing:** no EAS project is linked; signed builds and device runs remain open.
   `expo-dev-client` is not installed (the `development` profile needs it),
   `expo-updates` is not installed, so the profile channels have no effect (OTA
   updates are not planned), and the `preview` profile does not set `APP_VARIANT`,
@@ -180,9 +191,9 @@ Native code behind window-size checks, so tablets profit too. The saved-game key
   `com.raban.lattttice`, the real `appleId`, `ascAppId` and `appleTeamId` in
   `eas.json` (or an App Store Connect API key via `eas credentials`), a hosted
   privacy policy URL, iPhone and iPad screenshots.
-- **CI job:** none in this repository; EAS builds on Expo's servers. Optional
-  later: a manual GitHub job running `eas build --non-interactive` with an
-  `EXPO_TOKEN` secret.
+- **CI job:** `ios.yml` compiles an unsigned iPhone Release after Expo prebuild
+  and CocoaPods. Its first remote run is pending; it needs no EAS account. EAS
+  remains the configured path for signed TestFlight builds.
 - **Acceptance:** the TestFlight build installs on a physical iPhone and iPad;
   hotseat win → force quit → relaunch keeps the game; all four views; vs-computer
   reply and cancellation on New Game; VoiceOver reads cell labels such as
@@ -191,8 +202,9 @@ Native code behind window-size checks, so tablets profit too. The saved-game key
 ### Android
 
 - **What exists:** CI builds a debug APK (needs Metro) and a standalone release
-  APK with the embedded bundle, both signed with the public Android Debug key, and
-  checks their permissions and bundle. The only published binary is the older
+  APK with the embedded bundle, plus a release AAB, all signed with the public
+  Android Debug key. It checks APK permissions, the embedded bundle and
+  debug/release lint with their generated models. The only published binary is the older
   debug-signed APK in the `v0.1.0` pre-release, which the documentation site links
   as "Download v0.1.0 (APK)". `eas.json` builds APKs in `development` and
   `preview` and an AAB in `production`; `submit.production.android` targets the
@@ -233,8 +245,9 @@ wants a playable web page.
 
 ## 5. Milestones
 
-1. **M1 – CI green.** Adopt the SDK 58 patch set named in the CI note (from
-   2026-11-17 it meets the two-week dependency age rule), push, and get
+1. **M1 – CI green.** Verify the current changes with the strict dated Expo
+   policy gate, then adopt the reviewed SDK 58 patches on or after 2026-11-17
+   when they meet the two-week age rule. Push and get
    *Application checks* and `desktop.yml` green on `ubuntu-24.04`,
    `windows-latest` and `macos-15`. Exit: all jobs green and artifacts with the
    expected file names (`etabli-lattttice_0.1.0_amd64.deb`, AppImage, MSI, NSIS
@@ -246,11 +259,12 @@ wants a playable web page.
 3. **M3 – Windows and macOS acceptance of unsigned builds.** Windows 11 x64 and
    one Apple Silicon Mac (WKWebView cell layout included). Exit: journeys pass;
    SmartScreen/Gatekeeper behaviour documented in the README.
-4. **M4 – Desktop layout.** Board sized to the window height with chart and
-   settings beside it on wide windows; add a desktop-sized viewport to the
-   Playwright suite. Exit: at 1280×800 the whole Grid view is visible without
-   scrolling, and the phone layout is unchanged.
-5. **M5 – EAS project and first iOS build.** `eas init`, `production` build,
+4. **M4 – Desktop layout: complete.** Board sized to the window height, chart and
+   settings beside it on wide windows. The 1280 × 800 Playwright regression
+   confirms the last Grid cell is in the viewport and the settings fit alongside;
+   the existing phone journey also passes. Screenshots were visually checked.
+5. **M5 – EAS project and signed iOS acceptance.** The first local unsigned native
+   Release compile passed; `eas init`, `production` build,
    TestFlight internal test on iPhone and iPad. Exit: iOS acceptance list passes.
 6. **M6 – Android release signing.** Release keystore (EAS-managed or owner-held),
    signed APK attached to a new GitHub Release (version bumped past `0.1.0`), AAB
