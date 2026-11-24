@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useStore } from '../state/store';
 import { toIdx } from '../game/coords';
 import { theme } from '../ui/theme';
+import { useChrome } from '../ui/useChrome';
+import { useStrings } from '../i18n';
 import { colorForMark, viridis } from './colors';
 import { scoreAllEmpty } from '../overlay/strength';
 import { describeCell } from './cellLabel';
@@ -20,6 +22,8 @@ export function HeatView(): React.ReactElement {
   const winner = useStore((s) => s.winner);
   const mode = useStore((s) => s.mode);
   const isThinking = useStore((s) => s.isThinking);
+  const t = useStrings();
+  const c = useChrome();
   const inputDisabled = winner !== null || isThinking || (mode === 'vs-computer' && toMove === 'O');
   const winSet = useMemo(() => new Set<number>(winningLine ?? []), [winningLine]);
 
@@ -39,9 +43,7 @@ export function HeatView(): React.ReactElement {
 
   return (
     <View style={styles.outer}>
-      <Text style={styles.caption}>
-        Heat-view — every empty cell shaded by strength for {toMove}
-      </Text>
+      <Text style={[styles.caption, { color: c.textDim }]}>{t.heatCaption(toMove)}</Text>
       <HeatLegend min={min} max={max} />
 
       {[0, 1, 2, 3].map((z) => (
@@ -55,8 +57,8 @@ export function HeatView(): React.ReactElement {
                     const idx = toIdx(x, y, z, w);
                     const m = cells[idx];
                     const isEmpty = m === null;
-                    const t = isEmpty && max > min ? (scores[idx] - min) / (max - min) : 0;
-                    const bg = isEmpty ? viridis(t) : colorForMark(m);
+                    const strength = isEmpty && max > min ? (scores[idx] - min) / (max - min) : 0;
+                    const bg = isEmpty ? viridis(strength) : colorForMark(m);
                     const isWin = winSet.has(idx);
                     return (
                       <Pressable
@@ -65,7 +67,7 @@ export function HeatView(): React.ReactElement {
                         disabled={inputDisabled || m !== null}
                         style={[styles.cell, { backgroundColor: bg }, isWin && styles.cellWin]}
                         accessibilityRole="button"
-                        accessibilityLabel={describeCell({ x, y, z, w }, m)}
+                        accessibilityLabel={describeCell({ x, y, z, w }, m, t)}
                         accessibilityState={{ disabled: inputDisabled || m !== null }}
                       />
                     );
@@ -82,9 +84,11 @@ export function HeatView(): React.ReactElement {
 
 function HeatLegend({ min, max }: { min: number; max: number }): React.ReactElement {
   const stops = 16;
+  const t = useStrings();
+  const c = useChrome();
   return (
-    <View style={legendStyles.row} accessibilityLabel="heat scale legend">
-      <Text style={legendStyles.label}>{min.toFixed(1)}</Text>
+    <View style={legendStyles.row} accessibilityLabel={t.heatLegendA11y}>
+      <Text style={[legendStyles.label, { color: c.textDim }]}>{min.toFixed(1)}</Text>
       <View style={legendStyles.bar}>
         {Array.from({ length: stops }).map((_, i) => (
           <View
@@ -96,7 +100,7 @@ function HeatLegend({ min, max }: { min: number; max: number }): React.ReactElem
           />
         ))}
       </View>
-      <Text style={legendStyles.label}>{max.toFixed(1)}</Text>
+      <Text style={[legendStyles.label, { color: c.textDim }]}>{max.toFixed(1)}</Text>
     </View>
   );
 }
@@ -104,7 +108,7 @@ function HeatLegend({ min, max }: { min: number; max: number }): React.ReactElem
 const legendStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
   bar: { flex: 1, height: 8, borderRadius: 4, overflow: 'hidden', flexDirection: 'row' },
-  label: { color: theme.textMuted, fontSize: 10, minWidth: 28, textAlign: 'center' },
+  label: { fontSize: 10, minWidth: 28, textAlign: 'center' },
 });
 
 const styles = StyleSheet.create({
@@ -133,7 +137,6 @@ const styles = StyleSheet.create({
   },
   cellWin: { borderColor: theme.win, borderWidth: 2 },
   caption: {
-    color: theme.textMuted,
     fontSize: 11,
     textAlign: 'center',
     paddingBottom: 4,

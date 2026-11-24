@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useStore } from '../state/store';
 import { theme } from '../ui/theme';
+import { useStrings } from '../i18n';
 
 const W = 320;
 const H = 120;
@@ -16,21 +17,22 @@ interface Series {
 export function ProbChart(): React.ReactElement {
   const history = useStore((s) => s.probHistory);
   const turning = useStore((s) => s.turningPoint);
+  const t = useStrings();
 
   const series: Series[] = useMemo(
     () => [
       { label: 'X', color: theme.X, values: history.map((p) => p.pX) },
       { label: 'O', color: theme.O, values: history.map((p) => p.pO) },
-      { label: 'Draw', color: theme.textMuted, values: history.map((p) => p.pDraw) },
+      { label: t.probDraw, color: theme.textMuted, values: history.map((p) => p.pDraw) },
     ],
-    [history],
+    [history, t],
   );
 
   if (history.length === 0) {
     return (
       <View style={styles.wrap}>
-        <Text style={styles.title}>Win probability</Text>
-        <Text style={styles.empty}>Play a move to see analysis.</Text>
+        <Text style={styles.title}>{t.probTitle}</Text>
+        <Text style={styles.empty}>{t.probEmpty}</Text>
       </View>
     );
   }
@@ -50,7 +52,7 @@ export function ProbChart(): React.ReactElement {
   // Build path-segments as discrete View rectangles (no SVG dep — avoids Skia init in tests).
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>Win probability</Text>
+      <Text style={styles.title}>{t.probTitle}</Text>
       <View style={[styles.chart, { width: W, height: H }]}>
         {/* axes */}
         <View style={[styles.axis, { left: PAD, top: PAD, width: 1, height: H - PAD * 2, backgroundColor: theme.border }]} />
@@ -118,16 +120,16 @@ export function ProbChart(): React.ReactElement {
         {series.map((s) => (
           <View key={`lg-${s.label}`} style={styles.legendItem}>
             <View style={[styles.legendSwatch, { backgroundColor: s.color }]} />
-            <Text style={styles.legendText}>{s.label}</Text>
+            <Text numberOfLines={1} style={styles.legendText}>{s.label}</Text>
           </View>
         ))}
       </View>
       {turning && (
         <Text style={styles.turn}>
-          Turning point — ply {turning.ply}, Δp({turning.side}) ≈ {turning.delta.toFixed(2)}
+          {t.turningPoint(turning.ply, turning.side, turning.delta.toFixed(2))}
         </Text>
       )}
-      <Text style={styles.scale}>x: ply 0…{xMax}   y: 0…1</Text>
+      <Text style={styles.scale}>{t.probScale(xMax)}</Text>
     </View>
   );
 }

@@ -1,8 +1,11 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { theme } from './theme';
+import { useStrings } from '../i18n';
 import { SegmentedControl } from './SegmentedControl';
 import { Toggle } from './Toggle';
+import { AppearanceSettings } from './AppearanceSettings';
+import { Section } from './Section';
+import { useChrome } from './useChrome';
 import { useStore } from '../state/store';
 
 export function SettingsPanel(): React.ReactElement {
@@ -13,50 +16,65 @@ export function SettingsPanel(): React.ReactElement {
   const overlay = useStore((s) => s.overlayPerPlayer);
   const setOverlay = useStore((s) => s.setOverlayForPlayer);
   const newGame = useStore((s) => s.newGame);
+  const t = useStrings();
+  const c = useChrome();
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.section}>Mode</Text>
+      <Section label={t.modeLabel} />
       <SegmentedControl
         options={[
-          { value: 'hotseat', label: 'Hotseat' },
-          { value: 'vs-computer', label: 'vs Computer' },
+          { value: 'hotseat', label: t.hotseat.short, accessibilityLabel: t.hotseat.full },
+          { value: 'vs-computer', label: t.vsComputer.short, accessibilityLabel: t.vsComputer.full },
         ]}
         value={mode}
         onChange={setMode}
-        accessibilityLabel="Game mode"
+        accessibilityLabel={t.modeA11y}
+        testID="settings.mode"
       />
       {mode === 'vs-computer' && (
         <>
-          <Text style={styles.section}>AI level</Text>
+          <Section label={t.aiLevelLabel} />
           <SegmentedControl
             options={[
-              { value: 'easy', label: 'Easy' },
-              { value: 'medium', label: 'Medium' },
-              { value: 'hard', label: 'Hard' },
+              { value: 'easy', label: t.aiEasy },
+              { value: 'medium', label: t.aiMedium },
+              { value: 'hard', label: t.aiHard },
             ]}
             value={aiLevel}
             onChange={setAiLevel}
-            accessibilityLabel="AI difficulty"
+            accessibilityLabel={t.aiLevelA11y}
+            testID="settings.aiLevel"
           />
         </>
       )}
-      <Text style={styles.section}>Overlay (per player)</Text>
+      <Section label={t.overlayLabel} />
       <View style={styles.toggleRow}>
         <Toggle
-          label="X — strength hints"
+          label={t.hints('X').short}
+          accessibilityLabel={t.hints('X').full}
           value={overlay.X}
           onChange={(v): void => setOverlay('X', v)}
+          testID="settings.hints.X"
         />
         <Toggle
-          label="O — strength hints"
+          label={t.hints('O').short}
+          accessibilityLabel={t.hints('O').full}
           value={overlay.O}
           onChange={(v): void => setOverlay('O', v)}
+          testID="settings.hints.O"
         />
       </View>
-      <Pressable onPress={newGame} style={styles.newBtn} accessibilityRole="button">
-        <Text style={styles.newBtnText}>New Game</Text>
+      <Pressable
+        onPress={newGame}
+        style={[styles.newBtn, { borderColor: c.accent }]}
+        accessibilityRole="button"
+        accessibilityLabel={t.newGame}
+        testID="settings.newGame"
+      >
+        <Text numberOfLines={1} style={[styles.newBtnText, { color: c.accent }]}>{t.newGame}</Text>
       </Pressable>
+      <AppearanceSettings />
     </View>
   );
 }
@@ -66,17 +84,14 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 8,
   },
-  section: { color: theme.textMuted, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, marginTop: 6 },
   toggleRow: { flexDirection: 'row', gap: 16, flexWrap: 'wrap' },
   newBtn: {
     marginTop: 10,
-    backgroundColor: theme.panelStrong,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.border,
+    borderWidth: 1.5,
   },
-  newBtnText: { color: theme.text, fontWeight: '700' },
+  newBtnText: { fontWeight: '700' },
 });

@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useStore } from '../state/store';
 import { toIdx } from '../game/coords';
 import { theme } from '../ui/theme';
+import { useChrome } from '../ui/useChrome';
+import { useStrings } from '../i18n';
 import { colorForMark } from './colors';
 import { describeCell } from './cellLabel';
 import { squareCell } from './squareCell';
@@ -21,23 +23,30 @@ export function ZSlices(): React.ReactElement {
   const toMove = useStore((s) => s.toMove);
   const mode = useStore((s) => s.mode);
   const isThinking = useStore((s) => s.isThinking);
+  const t = useStrings();
+  const c = useChrome();
   const winSet = useMemo(() => new Set<number>(winningLine ?? []), [winningLine]);
   const inputDisabled = winner !== null || isThinking || (mode === 'vs-computer' && toMove === 'O');
 
   return (
     <View style={styles.wrap}>
-      <View style={styles.wRow} accessibilityLabel="w slider">
-        <Text style={styles.wLabel}>w =</Text>
+      <View style={styles.wRow} accessibilityLabel={t.wSlider}>
+        <Text style={[styles.wLabel, { color: c.text }]}>w =</Text>
         {[0, 1, 2, 3].map((wv) => (
           <Pressable
             key={`w-${wv}`}
             onPress={(): void => setW(wv)}
-            style={[styles.wBtn, w === wv && styles.wBtnActive]}
+            style={[
+              styles.wBtn,
+              { backgroundColor: c.surface, borderColor: c.border },
+              w === wv && { backgroundColor: c.selection, borderColor: c.accent },
+            ]}
             accessibilityRole="button"
-            accessibilityLabel={`set w to ${wv}`}
+            accessibilityLabel={t.setW(wv)}
             accessibilityState={{ selected: w === wv }}
+            testID={`w.${wv}`}
           >
-            <Text style={[styles.wBtnLabel, w === wv && styles.wBtnLabelActive]}>{wv}</Text>
+            <Text style={[styles.wBtnLabel, { color: w === wv ? c.text : c.textDim }]}>{wv}</Text>
           </Pressable>
         ))}
       </View>
@@ -58,7 +67,7 @@ export function ZSlices(): React.ReactElement {
                       disabled={inputDisabled || m !== null}
                       style={[styles.cell, isWin && styles.cellWin]}
                       accessibilityRole="button"
-                      accessibilityLabel={describeCell({ x, y, z, w }, m)}
+                      accessibilityLabel={describeCell({ x, y, z, w }, m, t)}
                       accessibilityState={{ disabled: inputDisabled || m !== null }}
                     >
                       <View style={[styles.mark, { backgroundColor: colorForMark(m) }]} />
@@ -77,18 +86,14 @@ export function ZSlices(): React.ReactElement {
 const styles = StyleSheet.create({
   wrap: { padding: 10, gap: 10 },
   wRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  wLabel: { color: theme.text, fontWeight: '600' },
+  wLabel: { fontWeight: '600' },
   wBtn: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: theme.panel,
-    borderWidth: 1,
-    borderColor: theme.border,
+    borderWidth: 1.5,
   },
-  wBtnActive: { backgroundColor: theme.panelStrong, borderColor: theme.accent },
-  wBtnLabel: { color: theme.textMuted, fontWeight: '700' },
-  wBtnLabelActive: { color: theme.text },
+  wBtnLabel: { fontWeight: '700' },
   layers: { gap: 8 },
   layer: {
     backgroundColor: theme.panel,

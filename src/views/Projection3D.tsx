@@ -2,6 +2,8 @@ import React, { Suspense, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useStore } from '../state/store';
 import { theme } from '../ui/theme';
+import { useChrome } from '../ui/useChrome';
+import { useStrings } from '../i18n';
 import { toIdx, fromIdx } from '../game/coords';
 import { colorForMark } from './colors';
 import { describeCell } from './cellLabel';
@@ -21,6 +23,8 @@ export function Projection3D(): React.ReactElement {
   const cells = useStore((s) => s.cells);
   const winningLine = useStore((s) => s.winningLine);
   const winSet = useMemo(() => new Set<number>(winningLine ?? []), [winningLine]);
+  const t = useStrings();
+  const c = useChrome();
 
   // 3D positions for each of 256 cells (no GL needed for the static projection fallback).
   // Compute raw projection, then re-center+rescale so the cloud fits the canvas regardless
@@ -67,8 +71,8 @@ export function Projection3D(): React.ReactElement {
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.caption}>3D Schlegel projection (read-only)</Text>
-      <Suspense fallback={<Text style={styles.caption}>loading…</Text>}>
+      <Text style={[styles.caption, { color: c.textDim }]}>{t.projectionCaption}</Text>
+      <Suspense fallback={<Text style={[styles.caption, { color: c.textDim }]}>{t.loading}</Text>}>
         <View style={[styles.canvas, { width: canvasSize, height: canvasSize }]}>
           {points.map((p) => {
             const m = cells[p.idx];
@@ -87,22 +91,20 @@ export function Projection3D(): React.ReactElement {
                   borderWidth: isWin ? 2 : 0,
                   borderColor: theme.win,
                 }}
-                accessibilityLabel={describeCell(fromIdx(p.idx), m)}
+                accessibilityLabel={describeCell(fromIdx(p.idx), m, t)}
               />
             );
           })}
         </View>
       </Suspense>
-      <Text style={styles.hint}>
-        Tap a cell in the 2D views to play. This projection is for spatial insight.
-      </Text>
+      <Text style={[styles.hint, { color: c.textDim }]}>{t.projectionHint}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { padding: 10, alignItems: 'center', gap: 8 },
-  caption: { color: theme.textMuted, fontSize: 12 },
+  caption: { fontSize: 12 },
   canvas: {
     backgroundColor: theme.panel,
     borderRadius: 12,
@@ -110,5 +112,5 @@ const styles = StyleSheet.create({
     borderColor: theme.border,
     overflow: 'hidden',
   },
-  hint: { color: theme.textMuted, fontSize: 11, textAlign: 'center', paddingHorizontal: 20 },
+  hint: { fontSize: 11, textAlign: 'center', paddingHorizontal: 20 },
 });

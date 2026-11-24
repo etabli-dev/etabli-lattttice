@@ -4,6 +4,8 @@ import { useStore } from '../state/store';
 import { toIdx } from '../game/coords';
 import type { Mark } from '../game/types';
 import { theme } from '../ui/theme';
+import { useStrings } from '../i18n';
+import type { Strings } from '../i18n';
 import { colorForMark } from './colors';
 import { describeCell } from './cellLabel';
 import { squareCell } from './squareCell';
@@ -22,6 +24,7 @@ export function GridOfGrids(): React.ReactElement {
   const winner = useStore((s) => s.winner);
   const mode = useStore((s) => s.mode);
   const isThinking = useStore((s) => s.isThinking);
+  const t = useStrings();
 
   const showOverlay = overlay[toMove] && winner === null;
   const inputDisabled = winner !== null || isThinking || (mode === 'vs-computer' && toMove === 'O');
@@ -51,6 +54,7 @@ export function GridOfGrids(): React.ReactElement {
               winSet={winSet}
               rankByIdx={rankByIdx}
               disabled={inputDisabled}
+              t={t}
             />
           ))}
         </View>
@@ -67,13 +71,14 @@ interface PaneProps {
   winSet: ReadonlySet<number>;
   rankByIdx: ReadonlyMap<number, number>;
   disabled: boolean;
+  t: Strings;
 }
 
 const Pane = React.memo(function Pane(props: PaneProps): React.ReactElement {
-  const { z, w, cells, onTap, winSet, rankByIdx, disabled } = props;
+  const { z, w, cells, onTap, winSet, rankByIdx, disabled, t } = props;
   return (
     <View style={styles.pane}>
-      <Text style={styles.paneLabel} accessibilityLabel={`z${z} w${w}`}>z{z}·w{w}</Text>
+      <Text style={styles.paneLabel} accessibilityLabel={t.paneA11y(z, w)}>z{z}·w{w}</Text>
       <View style={styles.paneGrid}>
         {[0, 1, 2, 3].map((y) => (
           <View key={`y-${y}`} style={styles.paneRow}>
@@ -93,7 +98,8 @@ const Pane = React.memo(function Pane(props: PaneProps): React.ReactElement {
                     rank !== undefined && styles.cellRanked,
                   ]}
                   accessibilityRole="button"
-                  accessibilityLabel={describeCell({ x, y, z, w }, mark)}
+                  accessibilityLabel={describeCell({ x, y, z, w }, mark, t)}
+                  testID={`cell.${idx}`}
                   accessibilityState={{ disabled: disabled || mark !== null }}
                 >
                   <View style={[styles.mark, { backgroundColor: colorForMark(mark) }]} />

@@ -60,7 +60,8 @@ export interface LattticeStore {
 
   // actions
   hydrated: boolean;
-  storageError: string | null;
+  /** A storage failure the UI explains in the chosen language. */
+  storageError: 'save' | 'load' | null;
   cancelBackgroundWork: () => void;
   hydrate: () => Promise<void>;
   newGame: () => void;
@@ -132,7 +133,7 @@ async function persist(state: LattticeStore): Promise<void> {
   } catch (e) {
     // best-effort; swallow to avoid crashing on storage failure
     log.warn('persist failed', e);
-    useStore.setState({ storageError: 'Could not save this game. Keep the app open and free some storage.' });
+    useStore.setState({ storageError: 'save' });
   }
 }
 
@@ -189,7 +190,7 @@ export const useStore = create<LattticeStore>((set, get) => ({
     } catch (e) {
       log.warn('hydrate failed', e);
       preserveUnreadSave = true;
-      set({ hydrated: true, storageError: 'The saved game could not be loaded and has been preserved. New game replaces it.' });
+      set({ hydrated: true, storageError: 'load' });
     }
   },
 

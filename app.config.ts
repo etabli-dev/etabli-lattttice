@@ -31,6 +31,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       supportsTablet: true,
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        CFBundleDisplayName: `Lattttice${nameSuffix}`,
+        CFBundleLocalizations: ['en', 'de'],
       },
     },
     android: {

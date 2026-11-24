@@ -1,7 +1,9 @@
 import React from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { useStrings } from '../i18n';
 import { useStore } from '../state/store';
 import { theme } from './theme';
+import { useChrome } from './useChrome';
 
 export function StatusBar(): React.ReactElement {
   const winner = useStore((s) => s.winner);
@@ -10,20 +12,22 @@ export function StatusBar(): React.ReactElement {
   const isThinking = useStore((s) => s.isThinking);
   const isAnalysing = useStore((s) => s.isAnalysing);
   const mode = useStore((s) => s.mode);
+  const t = useStrings();
+  const c = useChrome();
 
   let text: string;
-  if (winner) text = `${winner} wins!`;
-  else if (moveCount === 256) text = 'Draw';
-  else if (mode === 'vs-computer' && toMove === 'O') text = 'Computer thinking…';
-  else text = `${toMove} to move`;
+  if (winner) text = t.wins(winner);
+  else if (moveCount === 256) text = t.draw;
+  else if (mode === 'vs-computer' && toMove === 'O') text = t.computerThinking;
+  else text = t.toMove(toMove);
 
   return (
     <View style={styles.row}>
       <View style={[styles.dot, { backgroundColor: winner === 'X' || toMove === 'X' ? theme.X : theme.O }]} />
-      <Text style={styles.text} accessibilityLiveRegion="polite">{text}</Text>
+      <Text style={[styles.text, { color: c.text }]} accessibilityLiveRegion="polite">{text}</Text>
       <View style={styles.spacer} />
-      {isThinking && <ActivityIndicator color={theme.accent} size="small" />}
-      {isAnalysing && <Text style={styles.aux}>analysing…</Text>}
+      {isThinking && <ActivityIndicator color={c.accent} size="small" />}
+      {isAnalysing && <Text style={[styles.aux, { color: c.textDim }]}>{t.analysing}</Text>}
     </View>
   );
 }
@@ -37,7 +41,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dot: { width: 12, height: 12, borderRadius: 6 },
-  text: { color: theme.text, fontSize: 16, fontWeight: '600' },
-  aux: { color: theme.textMuted, fontSize: 12, marginLeft: 6 },
+  text: { fontSize: 16, fontWeight: '600' },
+  aux: { fontSize: 12, marginLeft: 6 },
   spacer: { flex: 1 },
 });
